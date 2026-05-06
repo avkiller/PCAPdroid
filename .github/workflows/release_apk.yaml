@@ -1,4 +1,4 @@
-name: Build and Release APK
+name: Build and Release APK for avkiller
 
 on:
   # 手工触发
@@ -34,8 +34,8 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-        - name: Write sign info
-        # if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && github.repository == 'LibChecker/LibChecker'
+        
+      - name: Write sign info
         run: |
           if [ ! -z "${{ secrets.SIGNING_KEY }}" ]; then
             echo releaseStorePassword='${{ secrets.KEY_STORE_PASSWORD }}' >> gradle.properties
