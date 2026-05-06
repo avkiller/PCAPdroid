@@ -40,6 +40,21 @@ android {
             }
         }
     }
+    splits {
+        // 基于 ABI（架构）进行拆分
+        abi {
+            enable true // 开启拆分功能
+            
+            // 清空默认的所有架构，重新指定你需要的
+            reset()
+            
+            // 包含你想要生成的架构
+            include "armeabi-v7a", "arm64-v8a", "x86_64"
+            
+            // 设置为 true 时，除了上面的独立 APK，还会额外生成一个包含所有架构的通用 APK
+            universalApk true 
+        }
+    }
 
     buildTypes {
         release {
