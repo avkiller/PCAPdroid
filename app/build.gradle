@@ -31,10 +31,13 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file("your_key_path.jks")
-            storePassword "your_password"
-            keyAlias "your_alias"
-            keyPassword "your_password"
+            // 只有当属性存在时才赋值，防止本地报错
+            if (project.hasProperty('releaseStoreFile')) {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
         }
     }
 
