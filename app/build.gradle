@@ -4,7 +4,7 @@ android {
     ndkVersion "28.2.13676358"
 
     defaultConfig {
-        applicationId "com.emanuelef.remote_capture"
+        applicationId "com.avkiller.pcapture"
         minSdkVersion 21
         compileSdk 35
         targetSdk 35
