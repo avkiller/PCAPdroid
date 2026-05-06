@@ -1,0 +1,70 @@
+name: Build and Release APK
+
+on:
+  # 手工触发
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Release Version Name (e.g. v1.9.1)'
+        required: true
+        default: 'v1.9.1'
+      release_notes:
+        description: 'Release Notes'
+        required: false
+        default: 'Manual production build'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+         contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive' # 如果你的项目有子模块，必须开启
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        - name: Write sign info
+        # if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && github.repository == 'LibChecker/LibChecker'
+        run: |
+          if [ ! -z "${{ secrets.SIGNING_KEY }}" ]; then
+            echo releaseStorePassword='${{ secrets.KEY_STORE_PASSWORD }}' >> gradle.properties
+            echo releaseKeyAlias='${{ secrets.ALIAS }}' >> gradle.properties
+            echo releaseKeyPassword='${{ secrets.KEY_PASSWORD }}' >> gradle.properties
+            echo releaseStoreFile='${{ github.workspace }}/key.jks' >> gradle.properties
+            echo ${{ secrets.SIGNING_KEY }} | base64 --decode > ${{ github.workspace }}/key.jks
+          fi
+
+      # 如果你的签名信息写在 build.gradle 的占位符里，
+      # 建议在这里通过环境变量或 Secrets 替换，或者在本地配置好。
+      # 下面是执行编译标准版 Release 的命令
+      - name: Build Standard Release APK
+        run: ./gradlew assembleStandardRelease
+
+      - name: List Build Artifacts (Debug)
+        run: ls -R app/build/outputs/apk/
+
+      # 创建并上传到 GitHub Release
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version_name }}
+          name: Release ${{ github.event.inputs.version_name }}
+          body: ${{ github.event.inputs.release_notes }}
+          draft: false
+          prerelease: false
+          # 找到 APK 所在的路径，通常是这个格式：
+          files: |
+            app/build/outputs/apk/standard/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
